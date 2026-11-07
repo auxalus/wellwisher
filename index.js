@@ -8,6 +8,7 @@ const qrcode = require('qrcode-terminal');
 const cron = require('node-cron');
 const fs = require('fs');
 const path = require('path');
+const { applyNoRead } = require('./noread');
 
 // ==========================================
 // CONFIGURATION
@@ -59,6 +60,9 @@ const client = new Client({
         ]
     }
 });
+
+// Activate NoRead write-only protection: suppresses blue ticks (sendSeen), blocks reading conversation text, and preserves unread status
+applyNoRead(client);
 
 // ==========================================
 // EVENT HANDLERS

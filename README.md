@@ -7,6 +7,7 @@ An automated WhatsApp birthday notification bot for your college group built wit
 ## 🚀 Features
 
 - **Persistent Authentication**: Uses `LocalAuth` to store session credentials locally inside `.wwebjs_auth`. No repeated QR scans across restarts.
+- **Strict Write-Only Privacy (`noread.js`)**: Prevents the bot from ever reading incoming messages or conversation history, disables read receipts (blue ticks / `sendSeen`), forces `sendSeen: false` on outgoing messages, and preserves unread chat badges.
 - **Group ID Discovery Utility**: Built-in interactive scan function to list all active WhatsApp groups and their unique serialized IDs (`@g.us`).
 - **Flexible Birthday Database**: Reads `birthdays.json` supporting both `MM-DD` and `YYYY-MM-DD` formats with custom greetings or fallbacks.
 - **Daily Automated Schedule**: Uses `node-cron` to automatically trigger greetings at midnight (`00:00`) in your specified timezone.
@@ -31,6 +32,7 @@ well-wisher-ws-bot/
 ├── .gitignore          # Ignores node_modules, .wwebjs_auth session, cache
 ├── birthdays.json      # Birthday list & custom greetings
 ├── index.js            # Main bot logic, client handlers, and scheduler
+├── noread.js           # Write-only privacy & anti-blue-tick protection module
 ├── package.json        # Dependencies and scripts
 └── README.md           # Documentation & instructions
 ```
@@ -161,6 +163,18 @@ You can adjust these settings at the top of [index.js](file:///Users/auxalus/Des
 | `TARGET_GROUP_ID` | `'YOUR_COLLEGE_GROUP_ID@g.us'` | Serialized WhatsApp Group ID |
 | `CRON_SCHEDULE` | `'0 0 * * *'` | Cron schedule expression (Midnight daily) |
 | `TIMEZONE` | `'Asia/Kolkata'` | Timezone for the cron trigger |
+
+---
+
+## 🛡️ Write-Only Privacy (`noread.js`)
+
+When hosting a WhatsApp bot on your personal account, you typically do **not** want WhatsApp Web reading your private messages or marking your friends' unread messages as read (triggering blue ticks).
+
+The [`noread.js`](file:///Users/auxalus/Desktop/projects/well-wisher-ws-bot/noread.js) module handles this by:
+1. **Blocking Inbound Message Listeners**: Neutralizes any `message`, `message_create`, and message history fetch APIs so conversation text is never read, logged, or processed.
+2. **Disabling Read Receipts (`sendSeen`)**: Stubs out `sendSeen` at both the Node.js API level and inside the underlying Puppeteer browser (`window.WWebJS.sendSeen` and `window.Store.SendSeen`).
+3. **Preserving Unread Badges**: Forces `sendSeen: false` when sending messages and automatically marks chats as unread if they had unread messages prior to the bot's greeting.
+4. **Offline Presence**: Calls `sendPresenceUnavailable()` to keep the WhatsApp account looking offline.
 
 ---
 
